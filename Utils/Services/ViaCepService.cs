@@ -24,6 +24,10 @@ namespace Utils.Services
                     return null;
 
                 var responseBody = await response.Content.ReadAsStringAsync();
+
+                if (responseBody.ToString().Contains("erro"))
+                    return null;
+                
                 var address = JsonConvert.DeserializeObject<Address>(responseBody);
 
                 return address;
