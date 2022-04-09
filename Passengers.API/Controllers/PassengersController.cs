@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Models.Entities;
 using Passengers.API.Services;
 using Passengers.API.Validators;
+using Utils.HttpApiResponse;
 
 namespace Passengers.API.Controllers
 {
@@ -32,7 +33,7 @@ namespace Passengers.API.Controllers
             var passenger = await _passengerMongoService.Get(id);
 
             if (passenger == null)
-                return NotFound("Passageiro não encontrado.");
+                return NotFound(new ApiResponse(404, "Passageiro não encontrado."));
 
             return passenger;
         }
@@ -43,7 +44,7 @@ namespace Passengers.API.Controllers
             var passenger = await _passengerMongoService.GetByPassaportNumber(passaportNumber);
 
             if (passenger == null)
-                return NotFound("Passageiro não encontrado.");
+                return NotFound(new ApiResponse(404, "Passageiro não encontrado."));
 
             return passenger;
         }
@@ -51,10 +52,10 @@ namespace Passengers.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Passenger>> Create(Passenger passenger)
         {
-            (_, bool status) = await _passengerValidator.ValidateToCreate(passenger);
+            (_, var response) = await _passengerValidator.ValidateToCreate(passenger);
 
-            if (!status)
-                return BadRequest("Passageiro já registrado.");
+            if (response.StatusCode.Equals(400))
+                return BadRequest(response);
 
             return CreatedAtRoute("GetPassenger", new { id = passenger.Id }, passenger);
         }
@@ -62,10 +63,10 @@ namespace Passengers.API.Controllers
         [HttpPut("{id:length(24)}")]
         public async Task<IActionResult> Update(string id, Passenger passenger)
         {
-            (_, bool status) = await _passengerValidator.ValidateToUpdate(id, passenger);
+            (_, var response) = await _passengerValidator.ValidateToUpdate(id, passenger);
 
-            if (!status)
-                return BadRequest("Passageiro não encontrado.");
+            if (response.StatusCode.Equals(404))
+                return NotFound(response);
 
             return NoContent();
         }
@@ -73,10 +74,10 @@ namespace Passengers.API.Controllers
         [HttpDelete("{id:length(24)}")]
         public async Task<IActionResult> Delete(string id)
         {
-            (_, bool status) = await _passengerValidator.ValidateToRemove(id);
+            (_, var response) = await _passengerValidator.ValidateToRemove(id);
 
-            if (!status)
-                return NotFound("Passageiro não encontrado.");
+            if (response.StatusCode.Equals(404))
+                return NotFound(response);
 
             return NoContent();
         }
