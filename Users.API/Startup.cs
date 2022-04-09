@@ -10,7 +10,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
+using Users.API.Services;
+using Users.API.Validators;
+using Utils.MongoDB;
 
 namespace Users.API
 {
@@ -32,6 +36,15 @@ namespace Users.API
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Users.API", Version = "v1" });
             });
+
+            services.Configure<MongoDatabaseSettings>(
+               Configuration.GetSection(nameof(MongoDatabaseSettings)));
+
+            services.AddSingleton<IMongoDatabaseSettings>(sp =>
+                sp.GetRequiredService<IOptions<MongoDatabaseSettings>>().Value);
+
+            services.AddSingleton<UserValidator>();
+            services.AddSingleton<UserMongoService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
