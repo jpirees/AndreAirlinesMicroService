@@ -3,6 +3,7 @@ using Airplanes.API.Services;
 using Models.Entities;
 
 using Microsoft.AspNetCore.Mvc;
+using Utils.HttpApiResponse;
 
 namespace Airplanes.API.Validators
 {
@@ -15,34 +16,40 @@ namespace Airplanes.API.Validators
             _airplaneMongoService = airplaneMongoService;
         }
 
-        public async Task<(Airplane, bool)> ValidateToCreate(Airplane airplaneIn)
+        public async Task<(Airplane, ApiResponse)> ValidateToCreate(Airplane airplaneIn)
         {
             var airplane = await _airplaneMongoService.GetByRegistrationCode(airplaneIn.RegistrationCode);
 
+            if (airplane != null)
+                return (airplane, new ApiResponse(400, "Aeronave já registrada."));
+
+            await _airplaneMongoService.Create(airplaneIn);
+
+            return (airplane, new ApiResponse(201));
+        }
+
+        public async Task<(Airplane, ApiResponse)> ValidateToUpdate(string id, Airplane airplaneIn)
+        {
+            var airplane = await _airplaneMongoService.Get(id);
+
             if (airplane == null)
-                await _airplaneMongoService.Create(airplaneIn);
+                return (airplane, new ApiResponse(404, "Aeronave não encontrada."));
 
-            return (airplane, airplane == null);
+            await _airplaneMongoService.Update(id, airplaneIn);
+
+            return (airplane, new ApiResponse(204));
         }
 
-        public async Task<(Airplane, bool)> ValidateToUpdate(string id, Airplane airplaneIn)
+        public async Task<(Airplane, ApiResponse)> ValidateToRemove(string id)
         {
             var airplane = await _airplaneMongoService.Get(id);
 
-            if (airplane != null)
-                await _airplaneMongoService.Update(id, airplaneIn);
+            if (airplane == null)
+                return (airplane, new ApiResponse(404, "Aeronave não encontrada."));
 
-            return (airplane, airplane != null);
-        }
+            await _airplaneMongoService.Remove(id);
 
-        public async Task<(Airplane, bool)> ValidateToRemove(string id)
-        {
-            var airplane = await _airplaneMongoService.Get(id);
-
-            if (airplane != null)
-                await _airplaneMongoService.Remove(id);
-
-            return (airplane, airplane != null);
+            return (airplane, new ApiResponse(204));
         }
     }
 }

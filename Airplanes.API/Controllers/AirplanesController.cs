@@ -5,6 +5,7 @@ using Airplanes.API.Validators;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Models.Entities;
+using Utils.HttpApiResponse;
 
 namespace Airplanes.API.Controllers
 {
@@ -32,7 +33,7 @@ namespace Airplanes.API.Controllers
             var airplane = await _airplaneMongoService.Get(id);
 
             if (airplane == null)
-                return NotFound("Aeronave não encontrada.");
+                return NotFound(new ApiResponse(404, "Aeronave não encontrada."));
 
             return airplane;
         }
@@ -44,7 +45,7 @@ namespace Airplanes.API.Controllers
             var airplane = await _airplaneMongoService.GetByRegistrationCode(registrationCode);
 
             if (airplane == null)
-                return NotFound("Aeronave não encontrada.");
+                return NotFound(new ApiResponse(404, "Aeronave não encontrada."));
 
             return airplane;
         }
@@ -52,10 +53,10 @@ namespace Airplanes.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Airplane>> Create(Airplane airplane)
         {
-            (_, bool status) = await _airplaneValidator.ValidateToCreate(airplane);
+            (_, var response) = await _airplaneValidator.ValidateToCreate(airplane);
 
-            if (!status)
-                return BadRequest("Aeronave já registrada.");
+            if (response.StatusCode.Equals(400))
+                return BadRequest(response);
 
             return CreatedAtRoute("GetAirplane", new { id = airplane.Id }, airplane);
         }
@@ -63,10 +64,10 @@ namespace Airplanes.API.Controllers
         [HttpPut("{id:length(24)}")]
         public async Task<IActionResult> Update(string id, Airplane airplane)
         {
-            (_, bool status) = await _airplaneValidator.ValidateToUpdate(id, airplane);
+            (_, var response) = await _airplaneValidator.ValidateToUpdate(id, airplane);
 
-            if (!status)
-                return BadRequest("Aeronave não encontrada.");
+            if (response.StatusCode.Equals(404))
+                return NotFound(response);
 
             return NoContent();
         }
@@ -74,10 +75,11 @@ namespace Airplanes.API.Controllers
         [HttpDelete("{id:length(24)}")]
         public async Task<IActionResult> Delete(string id)
         {
-            (_, bool status) = await _airplaneValidator.ValidateToRemove(id);
+            (_, var response) = await _airplaneValidator.ValidateToRemove(id);
 
-            if (!status)
-                return NotFound("Aeronave não encontrada.");
+
+            if (response.StatusCode.Equals(404))
+                return NotFound(response);
 
             return NoContent();
         }
