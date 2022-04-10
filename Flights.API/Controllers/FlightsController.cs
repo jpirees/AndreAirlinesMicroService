@@ -31,10 +31,10 @@ namespace Flights.API.Controllers
             if (string.IsNullOrEmpty(from) && string.IsNullOrEmpty(to))
                 return await _flightMongoService.Get();
 
-            else if (!string.IsNullOrEmpty(from))
+            else if (!string.IsNullOrEmpty(from) && string.IsNullOrEmpty(to))
                 return await _flightMongoService.GetByAirportOrigin(from);
 
-            else if (!string.IsNullOrEmpty(to))
+            else if (string.IsNullOrEmpty(from) && !string.IsNullOrEmpty(to))
                 return await _flightMongoService.GetByAirportDestination(to);
 
             else

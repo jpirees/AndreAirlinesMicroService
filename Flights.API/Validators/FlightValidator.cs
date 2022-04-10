@@ -2,6 +2,7 @@
 using Flights.API.Services;
 using Models.Entities;
 using Utils.HttpApiResponse;
+using Utils.Services;
 
 namespace Flights.API.Validators
 {
@@ -22,13 +23,13 @@ namespace Flights.API.Validators
                 return (flightIn, new ApiResponse(404, "Aeronave não encontrada."));
 
 
-            var airportOrigin = await AirportAPIService.SearchByAirport(flightIn.AirportOrigin.Code);
+            var airportOrigin = await AirportAPIService.SearchByAirportId(flightIn.AirportOrigin.Id);
 
             if (airportOrigin == null)
                 return (flightIn, new ApiResponse(404, "Aeroporto de origem não encontrado."));
 
 
-            var airportDestination = await AirportAPIService.SearchByAirport(flightIn.AirportDestination.Code);
+            var airportDestination = await AirportAPIService.SearchByAirportId(flightIn.AirportDestination.Id);
 
             if (airportDestination == null)
                 return (flightIn, new ApiResponse(404, "Aeroporto de destino não encontrado."));
@@ -66,7 +67,7 @@ namespace Flights.API.Validators
 
                 if (!flight.AirportOrigin.Code.Equals(flightIn.AirportOrigin.Code))
                 {
-                    var airportOrigin = await AirportAPIService.SearchByAirport(flightIn.AirportOrigin.Code);
+                    var airportOrigin = await AirportAPIService.SearchByAirportId(flightIn.AirportOrigin.Id);
 
                     if (airportOrigin == null)
                         return (flightIn, new ApiResponse(404, "Aeroporto de origem não encontrado."));
@@ -76,7 +77,7 @@ namespace Flights.API.Validators
 
                 if (!flight.AirportDestination.Code.Equals(flightIn.AirportDestination.Code))
                 {
-                    var airportDestination = await AirportAPIService.SearchByAirport(flightIn.AirportDestination.Code);
+                    var airportDestination = await AirportAPIService.SearchByAirportId(flightIn.AirportDestination.Id);
 
                     if (airportDestination == null)
                         return (flightIn, new ApiResponse(404, "Aeroporto de destino não encontrado."));
