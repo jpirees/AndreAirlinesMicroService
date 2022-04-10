@@ -23,9 +23,9 @@ namespace Utils.Services
                 if (responseBody.ToString().Contains("erro"))
                     return null;
 
-                var airplane = JsonConvert.DeserializeObject<Airport>(responseBody);
+                var airport = JsonConvert.DeserializeObject<Airport>(responseBody);
 
-                return airplane;
+                return airport;
             }
             catch (HttpRequestException exception)
             {
@@ -50,9 +50,9 @@ namespace Utils.Services
                 if (responseBody.ToString().Contains("erro"))
                     return null;
 
-                var airplane = JsonConvert.DeserializeObject<Airport>(responseBody);
+                var airport = JsonConvert.DeserializeObject<Airport>(responseBody);
 
-                return airplane;
+                return airport;
             }
             catch (HttpRequestException exception)
             {

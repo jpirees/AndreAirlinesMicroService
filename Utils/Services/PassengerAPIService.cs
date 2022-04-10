@@ -27,9 +27,9 @@ namespace Utils.Services
                 if (responseBody.ToString().Contains("erro"))
                     return null;
 
-                var airplane = JsonConvert.DeserializeObject<Passenger>(responseBody);
+                var passenger = JsonConvert.DeserializeObject<Passenger>(responseBody);
 
-                return airplane;
+                return passenger;
             }
             catch (HttpRequestException exception)
             {
