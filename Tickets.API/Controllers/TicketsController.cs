@@ -37,6 +37,17 @@ namespace Tickets.API.Controllers
             return ticket;
         }
 
+        [HttpGet("Flight")]
+        public async Task<ActionResult<List<Ticket>>> GetByFlight(string id)
+        {
+            var tickets = await _ticketMongoService.GetByFlight(id);
+
+            if (tickets == null)
+                return NotFound(new ApiResponse(404, "Reserva(s) não encontrada(s)."));
+
+            return tickets;
+        }
+
         [HttpPost]
         public async Task<ActionResult<Ticket>> Create(Ticket ticket)
         {
