@@ -11,9 +11,9 @@ namespace Models.Entities
 {
     public class Airport
     {
-        public static readonly string GET_ALL = "SELECT Code, City, Country, Continent FROM Airport";
+        public static readonly string GET_ALL = "SELECT Id, Code, City, Country, Continent FROM Airport";
 
-        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Key]
         [JsonProperty("Id")]
         public int Id { get; set; }
 
