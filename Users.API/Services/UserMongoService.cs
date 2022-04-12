@@ -33,6 +33,10 @@ namespace Users.API.Services
             await _users.Find(user => user.Username == username)
                             .FirstOrDefaultAsync<User>();
 
+        public async Task<User> GetByUsernamePassword(string username, string password) =>
+            await _users.Find(user => user.Username == username && user.Password == password)
+                            .FirstOrDefaultAsync<User>();
+
         public async Task<User> Create(User userIn)
         {
             await _users.InsertOneAsync(userIn);

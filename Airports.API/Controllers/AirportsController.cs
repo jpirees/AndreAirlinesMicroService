@@ -8,9 +8,12 @@ using Microsoft.EntityFrameworkCore;
 using Airports.API.Data;
 using Models.Entities;
 using Airports.API.Repositories;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Airports.API.Controllers
 {
+    [EnableCors]
     [Route("api/[controller]")]
     [ApiController]
     public class AirportsController : ControllerBase
@@ -27,6 +30,7 @@ namespace Airports.API.Controllers
         // GET: api/Airports
         // Dapper
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<List<Airport>>> GetAirport()
         {
             return await _dapperContext.ToListAsync();
@@ -42,6 +46,7 @@ namespace Airports.API.Controllers
 
         // GET: api/Airports/5
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<Airport>> GetAirport(int id)
         {
             var airport = await _context.Airport.FindAsync(id);
@@ -55,6 +60,7 @@ namespace Airports.API.Controllers
         }
 
         [HttpGet("Code/{code}")]
+        [Authorize]
         public async Task<ActionResult<Airport>> GetAirportByCode(string code)
         {
             var airport = await _context.Airport.Where(a => a.Code == code).FirstOrDefaultAsync();
@@ -70,6 +76,7 @@ namespace Airports.API.Controllers
         // PUT: api/Airports/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize(Roles = "manager_airports")]
         public async Task<IActionResult> PutAirport(int id, Airport airport)
         {
             if (id != airport.Id)
@@ -101,6 +108,7 @@ namespace Airports.API.Controllers
         // POST: api/Airports
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Roles = "manager_airports")]
         public async Task<ActionResult<Airport>> PostAirport(Airport airport)
         {
             _context.Airport.Add(airport);
@@ -111,6 +119,7 @@ namespace Airports.API.Controllers
 
         // DELETE: api/Airports/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "manager_airports")]
         public async Task<IActionResult> DeleteAirport(int id)
         {
             var airport = await _context.Airport.FindAsync(id);

@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using Airplanes.API.Services;
 using Airplanes.API.Validators;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Models.Entities;
@@ -9,6 +11,7 @@ using Utils.HttpApiResponse;
 
 namespace Airplanes.API.Controllers
 {
+    [EnableCors]
     [Route("api/[controller]")]
     [ApiController]
     public class AirplanesController : ControllerBase
@@ -23,11 +26,13 @@ namespace Airplanes.API.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<List<Airplane>>> GetAll() =>
            await _airplaneMongoService.Get();
 
 
         [HttpGet("{id:length(24)}", Name = "GetAirplane")]
+        [Authorize]
         public async Task<ActionResult<Airplane>> Get(string id)
         {
             var airplane = await _airplaneMongoService.Get(id);
@@ -40,6 +45,7 @@ namespace Airplanes.API.Controllers
 
 
         [HttpGet("{registrationCode}")]
+        [Authorize]
         public async Task<ActionResult<Airplane>> GetByRegistrationCode(string registrationCode)
         {
             var airplane = await _airplaneMongoService.GetByRegistrationCode(registrationCode);
@@ -51,6 +57,7 @@ namespace Airplanes.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "manager_airplanes")]
         public async Task<ActionResult<Airplane>> Create(Airplane airplane)
         {
             (_, var response) = await _airplaneValidator.ValidateToCreate(airplane);
@@ -62,6 +69,7 @@ namespace Airplanes.API.Controllers
         }
 
         [HttpPut("{id:length(24)}")]
+        [Authorize(Roles = "manager_airplanes")]
         public async Task<IActionResult> Update(string id, Airplane airplane)
         {
             (_, var response) = await _airplaneValidator.ValidateToUpdate(id, airplane);
@@ -73,6 +81,7 @@ namespace Airplanes.API.Controllers
         }
 
         [HttpDelete("{id:length(24)}")]
+        [Authorize(Roles = "manager_airplanes")]
         public async Task<IActionResult> Delete(string id)
         {
             (_, var response) = await _airplaneValidator.ValidateToRemove(id);

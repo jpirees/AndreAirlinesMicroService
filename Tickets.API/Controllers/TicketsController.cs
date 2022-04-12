@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Models.Entities;
@@ -9,6 +11,7 @@ using Utils.HttpApiResponse;
 
 namespace Tickets.API.Controllers
 {
+    [EnableCors]
     [Route("api/[controller]")]
     [ApiController]
     public class TicketsController : ControllerBase
@@ -23,10 +26,12 @@ namespace Tickets.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "manager_tickets")]
         public async Task<ActionResult<List<Ticket>>> GetAll() =>
             await _ticketMongoService.Get();
 
         [HttpGet("{id:length(24)}", Name = "GetTicket")]
+        [Authorize(Roles = "manager_tickets,clerk_tickets")]
         public async Task<ActionResult<Ticket>> Get(string id)
         {
             var ticket = await _ticketMongoService.Get(id);
@@ -38,6 +43,7 @@ namespace Tickets.API.Controllers
         }
 
         [HttpGet("Flight")]
+        [Authorize(Roles = "manager_tickets,clerk_tickets")]
         public async Task<ActionResult<List<Ticket>>> GetByFlight(string id)
         {
             var tickets = await _ticketMongoService.GetByFlight(id);
@@ -49,6 +55,7 @@ namespace Tickets.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "manager_tickets,clerk_tickets")]
         public async Task<ActionResult<Ticket>> Create(Ticket ticket)
         {
             (_, var response) = await _ticketValidator.ValidateToCreate(ticket);
@@ -62,6 +69,7 @@ namespace Tickets.API.Controllers
         }
 
         [HttpPut("{id:length(24)}")]
+        [Authorize(Roles = "manager_tickets,clerk_tickets")]
         public async Task<IActionResult> Update(string id, Ticket ticket)
         {
             (_, var response) = await _ticketValidator.ValidateToUpdate(id, ticket);
@@ -75,6 +83,7 @@ namespace Tickets.API.Controllers
         }
 
         [HttpDelete("{id:length(24)}")]
+        [Authorize(Roles = "manager_tickets,clerk_tickets")]
         public async Task<IActionResult> Delete(string id)
         {
             (_, var response) = await _ticketValidator.ValidateToRemove(id);

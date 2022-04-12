@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using Flights.API.Services;
 using Flights.API.Validators;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Models.Entities;
@@ -9,6 +11,7 @@ using Utils.HttpApiResponse;
 
 namespace Flights.API.Controllers
 {
+    [EnableCors]
     [Route("api/[controller]")]
     [ApiController]
     public class FlightsController : ControllerBase
@@ -23,6 +26,7 @@ namespace Flights.API.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         //public async Task<ActionResult<List<Flight>>> GetAll() =>
         //   await _flightMongoService.Get();
 
@@ -43,6 +47,7 @@ namespace Flights.API.Controllers
 
 
         [HttpGet("{id:length(24)}", Name = "GetFlight")]
+        [Authorize]
         public async Task<ActionResult<Flight>> Get(string id)
         {
             var flight = await _flightMongoService.Get(id);
@@ -54,6 +59,7 @@ namespace Flights.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "manager_flights")]
         public async Task<ActionResult<Flight>> Create(Flight flight)
         {
             (_, var response) = await _flightValidator.ValidateToCreate(flight);
@@ -67,6 +73,7 @@ namespace Flights.API.Controllers
         }
 
         [HttpPut("{id:length(24)}")]
+        [Authorize(Roles = "manager_flights")]
         public async Task<IActionResult> Update(string id, Flight flight)
         {
             (_, var response) = await _flightValidator.ValidateToUpdate(id, flight);
@@ -80,6 +87,7 @@ namespace Flights.API.Controllers
         }
 
         [HttpDelete("{id:length(24)}")]
+        [Authorize(Roles = "manager_flights")]
         public async Task<IActionResult> Delete(string id)
         {
             (_, var response) = await _flightValidator.ValidateToRemove(id);

@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using BasePrices.API.Services;
 using BasePrices.API.Validators;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Models.Entities;
@@ -10,6 +12,7 @@ using Utils.HttpApiResponse;
 
 namespace BasePrices.API.Controllers
 {
+    [EnableCors]
     [Route("api/[controller]")]
     [ApiController]
     public class BasePricesController : ControllerBase
@@ -24,6 +27,7 @@ namespace BasePrices.API.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         //public async Task<ActionResult<List<BasePrice>>> GetAll() =>
         //   await _basePriceMongoService.Get();
 
@@ -44,6 +48,7 @@ namespace BasePrices.API.Controllers
 
 
         [HttpGet("{id:length(24)}", Name = "GetBasePrice")]
+        [Authorize]
         public async Task<ActionResult<BasePrice>> Get(string id)
         {
             var basePrice = await _basePriceMongoService.Get(id);
@@ -55,6 +60,7 @@ namespace BasePrices.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "manager_baseprices")]
         public async Task<ActionResult<BasePrice>> Create(BasePrice basePrice)
         {
             (_, var response) = await _basePriceValidator.ValidateToCreate(basePrice);
@@ -68,6 +74,7 @@ namespace BasePrices.API.Controllers
         }
 
         [HttpPut("{id:length(24)}")]
+        [Authorize(Roles = "manager_baseprices")]
         public async Task<IActionResult> Update(string id, BasePrice basePrice)
         {
             (_, var response) = await _basePriceValidator.ValidateToUpdate(id, basePrice);
@@ -81,6 +88,7 @@ namespace BasePrices.API.Controllers
         }
 
         [HttpDelete("{id:length(24)}")]
+        [Authorize(Roles = "manager_baseprices")]
         public async Task<IActionResult> Delete(string id)
         {
             (_, var response) = await _basePriceValidator.ValidateToRemove(id);
