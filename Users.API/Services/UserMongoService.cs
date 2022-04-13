@@ -13,8 +13,8 @@ namespace Users.API.Services
         public UserMongoService(IMongoDatabaseSettings settings)
         {
             var user = new MongoClient(settings.ConnectionString);
-            var databse = user.GetDatabase(settings.DatabaseName);
-            _users = databse.GetCollection<User>(settings.CollectionName);
+            var database = user.GetDatabase(settings.DatabaseName);
+            _users = database.GetCollection<User>(settings.CollectionName);
         }
 
         public async Task<List<User>> Get() =>

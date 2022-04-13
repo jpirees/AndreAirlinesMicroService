@@ -39,8 +39,8 @@ namespace Users.API.Validators
                         userIn.Address = address;
                     }
 
-                    await _userMongoService.Create(userIn);
-                    return (null, new ApiResponse(200));
+                    userIn = await _userMongoService.Create(userIn);
+                    return (userIn, new ApiResponse(201));
                 }
 
                 return (user, new ApiResponse(400, "Login de usuário já cadastrado."));

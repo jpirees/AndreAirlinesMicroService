@@ -19,6 +19,8 @@ namespace Users.API.Controllers
         private readonly UserMongoService _userMongoService;
         private readonly UserValidator _userValidator;
 
+        public UsersController() { }
+
         public UsersController(UserMongoService userMongoService, UserValidator userValidator)
         {
             _userMongoService = userMongoService;
