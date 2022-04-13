@@ -11,5 +11,14 @@ namespace Utils.MongoDB
         public string ConnectionString { get; set; }
         public string DatabaseName { get; set; }
         public string CollectionName { get; set; }
+
+        public MongoDatabaseSettings() { }
+
+        public MongoDatabaseSettings(string connectionString, string databaseName, string collectionName)
+        {
+            ConnectionString = connectionString;
+            DatabaseName = databaseName;
+            CollectionName = collectionName;
+        }
     }
 }
