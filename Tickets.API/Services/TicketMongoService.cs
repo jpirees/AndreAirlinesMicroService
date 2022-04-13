@@ -13,8 +13,8 @@ namespace Tickets.API.Services
         public TicketMongoService(IMongoDatabaseSettings settings)
         {
             var ticket = new MongoClient(settings.ConnectionString);
-            var databse = ticket.GetDatabase(settings.DatabaseName);
-            _tickets = databse.GetCollection<Ticket>(settings.CollectionName);
+            var database = ticket.GetDatabase(settings.DatabaseName);
+            _tickets = database.GetCollection<Ticket>(settings.CollectionName);
         }
 
         public async Task<List<Ticket>> Get() =>

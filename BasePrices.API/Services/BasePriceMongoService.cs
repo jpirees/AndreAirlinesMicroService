@@ -13,8 +13,8 @@ namespace BasePrices.API.Services
         public BasePriceMongoService(IMongoDatabaseSettings settings)
         {
             var basePrice = new MongoClient(settings.ConnectionString);
-            var databse = basePrice.GetDatabase(settings.DatabaseName);
-            _basePrices = databse.GetCollection<BasePrice>(settings.CollectionName);
+            var database = basePrice.GetDatabase(settings.DatabaseName);
+            _basePrices = database.GetCollection<BasePrice>(settings.CollectionName);
         }
 
         public async Task<List<BasePrice>> Get() =>

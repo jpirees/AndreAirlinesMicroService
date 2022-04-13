@@ -13,8 +13,8 @@ namespace Flights.API.Services
         public FlightMongoService(IMongoDatabaseSettings settings)
         {
             var flight = new MongoClient(settings.ConnectionString);
-            var databse = flight.GetDatabase(settings.DatabaseName);
-            _flights = databse.GetCollection<Flight>(settings.CollectionName);
+            var database = flight.GetDatabase(settings.DatabaseName);
+            _flights = database.GetCollection<Flight>(settings.CollectionName);
         }
 
         public async Task<List<Flight>> Get() =>

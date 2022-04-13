@@ -13,8 +13,8 @@ namespace Passengers.API.Services
         public PassengerMongoService(IMongoDatabaseSettings settings)
         {
             var passenger = new MongoClient(settings.ConnectionString);
-            var databse = passenger.GetDatabase(settings.DatabaseName);
-            _passengers = databse.GetCollection<Passenger>(settings.CollectionName);
+            var database = passenger.GetDatabase(settings.DatabaseName);
+            _passengers = database.GetCollection<Passenger>(settings.CollectionName);
         }
 
         public async Task<List<Passenger>> Get() =>
