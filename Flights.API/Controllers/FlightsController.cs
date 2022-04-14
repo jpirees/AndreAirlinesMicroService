@@ -7,7 +7,9 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Models.Entities;
+using Newtonsoft.Json;
 using Utils.HttpApiResponse;
+using Utils.Services;
 
 namespace Flights.API.Controllers
 {
@@ -62,38 +64,63 @@ namespace Flights.API.Controllers
         [Authorize(Roles = "manager_flights")]
         public async Task<ActionResult<Flight>> Create(Flight flight)
         {
-            (_, var response) = await _flightValidator.ValidateToCreate(flight);
+            var (flightOut, response) = await _flightValidator.ValidateToCreate(flight);
 
-            return response.StatusCode switch
+            switch (response.StatusCode)
             {
-                400 => BadRequest(response),
-                404 => NotFound(response),
-                _ => CreatedAtRoute("GetFlight", new { id = flight.Id }, flight)
-            };
+                case 400:
+                    return BadRequest(response);
+
+                case 404:
+                    return NotFound(response);
+
+                default:
+                    var objectAfterJson = JsonConvert.SerializeObject(flight).ToString();
+
+                    await LogAPIService.RegisterLog(new Log(null, null, objectAfterJson, "post", "flights"));
+
+                    return CreatedAtRoute("GetFlight", new { id = flight.Id }, flight);
+            }
         }
 
         [HttpPut("{id:length(24)}")]
         [Authorize(Roles = "manager_flights")]
         public async Task<IActionResult> Update(string id, Flight flight)
         {
-            (_, var response) = await _flightValidator.ValidateToUpdate(id, flight);
+            var (flightOut,  response) = await _flightValidator.ValidateToUpdate(id, flight);
 
-            return response.StatusCode switch
+            switch (response.StatusCode)
             {
-                400 => BadRequest(response),
-                404 => NotFound(response),
-                _ => NoContent()
-            };
+                case 400:
+                    return BadRequest(response);
+
+                case 404:
+                    return NotFound(response);
+
+                default:
+                    var objectBeforeJson = JsonConvert.SerializeObject(flightOut).ToString();
+
+                    var objectAfterJson = JsonConvert.SerializeObject(flight).ToString();
+
+                    await LogAPIService.RegisterLog(new Log(null, objectBeforeJson, objectAfterJson, "put", "flights"));
+
+                    return NoContent();
+            }
         }
 
         [HttpDelete("{id:length(24)}")]
         [Authorize(Roles = "manager_flights")]
         public async Task<IActionResult> Delete(string id)
         {
-            (_, var response) = await _flightValidator.ValidateToRemove(id);
+            var (flightOut, response) = await _flightValidator.ValidateToRemove(id);
 
             if (response.StatusCode.Equals(404))
                 return NotFound(response);
+
+            var objectBeforeJson = JsonConvert.SerializeObject(flightOut).ToString();
+
+            await LogAPIService.RegisterLog(new Log(null, objectBeforeJson, null, "delete", "flights"));
+
 
             return NoContent();
         }

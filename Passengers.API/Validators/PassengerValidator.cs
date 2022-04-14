@@ -68,7 +68,7 @@ namespace Passengers.API.Validators
 
                 await _passengerMongoService.Update(id, passengerIn);
 
-                return (passenger, new ApiResponse(200));
+                return (passenger, new ApiResponse(204));
             }
 
             return (passenger, new ApiResponse(404, "Passageiro não encontrado."));
@@ -83,7 +83,7 @@ namespace Passengers.API.Validators
 
             await _passengerMongoService.Remove(id);
 
-            return (passenger, new ApiResponse(200));
+            return (passenger, new ApiResponse(204));
         }
     }
 }

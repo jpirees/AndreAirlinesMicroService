@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Models.Entities;
+using Newtonsoft.Json;
 using Utils.HttpApiResponse;
-
+using Utils.Services;
 
 namespace BasePrices.API.Controllers
 {
@@ -63,38 +64,64 @@ namespace BasePrices.API.Controllers
         [Authorize(Roles = "manager_baseprices")]
         public async Task<ActionResult<BasePrice>> Create(BasePrice basePrice)
         {
-            (_, var response) = await _basePriceValidator.ValidateToCreate(basePrice);
+            var (_, response) = await _basePriceValidator.ValidateToCreate(basePrice);
 
-            return response.StatusCode switch
+
+            switch (response.StatusCode)
             {
-                400 => BadRequest(response),
-                404 => NotFound(response),
-                _ => CreatedAtRoute("GetBasePrice", new { id = basePrice.Id }, basePrice)
-            };
+                case 400:
+                    return BadRequest(response);
+
+                case 404:
+                    return NotFound(response);
+
+                default:
+                    var objectAfterJson = JsonConvert.SerializeObject(basePrice).ToString();
+
+                    await LogAPIService.RegisterLog(new Log(null, null, objectAfterJson, "post", "base_prices"));
+
+                    return CreatedAtRoute("GetBasePrice", new { id = basePrice.Id }, basePrice);
+            }
         }
 
         [HttpPut("{id:length(24)}")]
         [Authorize(Roles = "manager_baseprices")]
         public async Task<IActionResult> Update(string id, BasePrice basePrice)
         {
-            (_, var response) = await _basePriceValidator.ValidateToUpdate(id, basePrice);
+            var (basePriceOut, response) = await _basePriceValidator.ValidateToUpdate(id, basePrice);
 
-            return response.StatusCode switch
+            switch (response.StatusCode)
             {
-                400 => BadRequest(response),
-                404 => NotFound(response),
-                _ => NoContent()
-            };
+                case 400:
+                    return BadRequest(response);
+
+                case 404:
+                    return NotFound(response);
+
+                default:
+                    var objectBeforeJson = JsonConvert.SerializeObject(basePriceOut).ToString();
+
+                    var objectAfterJson = JsonConvert.SerializeObject(basePrice).ToString();
+
+                    await LogAPIService.RegisterLog(new Log(null, objectBeforeJson, objectAfterJson, "put", "base_prices"));
+
+                    return NoContent();
+            }
+
         }
 
         [HttpDelete("{id:length(24)}")]
         [Authorize(Roles = "manager_baseprices")]
         public async Task<IActionResult> Delete(string id)
         {
-            (_, var response) = await _basePriceValidator.ValidateToRemove(id);
+            var (basePriceOut, response) = await _basePriceValidator.ValidateToRemove(id);
 
             if (response.StatusCode.Equals(404))
                 return NotFound(response);
+
+            var objectBeforeJson = JsonConvert.SerializeObject(basePriceOut).ToString();
+
+            await LogAPIService.RegisterLog(new Log(null, objectBeforeJson, null, "delete", "base_prices"));
 
             return NoContent();
         }

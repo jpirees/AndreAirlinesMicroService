@@ -12,6 +12,33 @@ namespace Utils.Services
 {
     public class UserAPIService
     {
+        public static async Task<UserResponseDTO> SearchByUsername(string username)
+        {
+            HttpClient httpClient = new();
+
+            try
+            {
+                HttpResponseMessage response = await httpClient.GetAsync($"https://localhost:44334/api/Users/{username}");
+
+                if (!response.IsSuccessStatusCode)
+                    return null;
+
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                if (responseBody.ToString().Contains("erro"))
+                    return null;
+
+                var user = JsonConvert.DeserializeObject<UserResponseDTO>(responseBody);
+
+                return user;
+            }
+            catch (HttpRequestException exception)
+            {
+                throw new HttpRequestException("Serviço indisponível", exception, System.Net.HttpStatusCode.InternalServerError);
+            }
+        }
+
+
         public static async Task<UserResponseDTO> SearchByUsername(string username, string password)
         {
             HttpClient httpClient = new();
@@ -30,8 +57,6 @@ namespace Utils.Services
 
                 var user = JsonConvert.DeserializeObject<UserResponseDTO>(responseBody);
 
-                //var user = new UserResponseDTO(userObject.Name, userObject.Username, userObject.Department, userObject.Role);
-
                 return user;
             }
             catch (HttpRequestException exception)
@@ -39,6 +64,7 @@ namespace Utils.Services
                 throw new HttpRequestException("Serviço indisponível", exception, System.Net.HttpStatusCode.InternalServerError);
             }
         }
+
 
     }
 }

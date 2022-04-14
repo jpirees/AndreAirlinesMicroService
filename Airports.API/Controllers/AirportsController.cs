@@ -10,6 +10,8 @@ using Models.Entities;
 using Airports.API.Repositories;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Authorization;
+using Newtonsoft.Json;
+using Utils.Services;
 
 namespace Airports.API.Controllers
 {
@@ -79,10 +81,13 @@ namespace Airports.API.Controllers
         [Authorize(Roles = "manager_airports")]
         public async Task<IActionResult> PutAirport(int id, Airport airport)
         {
+            var airportOut = await _context.Airport.FindAsync(id);
+
+            if (airportOut == null)
+                return NotFound("Aeroporto não encontrado.");
+
             if (id != airport.Id)
-            {
                 return BadRequest();
-            }
 
             _context.Entry(airport).State = EntityState.Modified;
 
@@ -102,6 +107,13 @@ namespace Airports.API.Controllers
                 }
             }
 
+            var objectBeforeJson = JsonConvert.SerializeObject(airportOut).ToString();
+
+            var objectAfterJson = JsonConvert.SerializeObject(airport).ToString();
+
+            await LogAPIService.RegisterLog(new Log(null, objectBeforeJson, objectAfterJson, "put", "airports"));
+
+
             return NoContent();
         }
 
@@ -114,6 +126,10 @@ namespace Airports.API.Controllers
             _context.Airport.Add(airport);
             await _context.SaveChangesAsync();
 
+            var objectAfterJson = JsonConvert.SerializeObject(airport).ToString();
+
+            await LogAPIService.RegisterLog(new Log(null, null, objectAfterJson, "post", "airports"));
+
             return CreatedAtAction("GetAirport", new { id = airport.Id }, airport);
         }
 
@@ -122,14 +138,20 @@ namespace Airports.API.Controllers
         [Authorize(Roles = "manager_airports")]
         public async Task<IActionResult> DeleteAirport(int id)
         {
-            var airport = await _context.Airport.FindAsync(id);
-            if (airport == null)
+            var airportOut = await _context.Airport.FindAsync(id);
+
+            if (airportOut == null)
             {
                 return NotFound("Aeroporto não encontrado.");
             }
 
-            _context.Airport.Remove(airport);
+            _context.Airport.Remove(airportOut);
+
             await _context.SaveChangesAsync();
+
+            var objectBeforeJson = JsonConvert.SerializeObject(airportOut).ToString();
+
+            await LogAPIService.RegisterLog(new Log(null, objectBeforeJson, null, "delete", "airports"));
 
             return NoContent();
         }

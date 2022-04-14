@@ -76,7 +76,7 @@ namespace BasePrices.API.Validators
 
                 await _basePriceMongoService.Update(id, basePriceIn);
 
-                return (basePriceIn, new ApiResponse(204));
+                return (basePrice, new ApiResponse(204));
             }
 
             return (basePrice, new ApiResponse(404, "Preço base não encontrado."));

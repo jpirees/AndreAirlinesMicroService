@@ -7,7 +7,9 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Models.Entities;
+using Newtonsoft.Json;
 using Utils.HttpApiResponse;
+using Utils.Services;
 
 namespace Airplanes.API.Controllers
 {
@@ -65,6 +67,10 @@ namespace Airplanes.API.Controllers
             if (response.StatusCode.Equals(400))
                 return BadRequest(response);
 
+            var objectAfterJson = JsonConvert.SerializeObject(airplane).ToString();
+
+            await LogAPIService.RegisterLog(new Log(null, null, objectAfterJson, "post", "airplanes"));
+
             return CreatedAtRoute("GetAirplane", new { id = airplane.Id }, airplane);
         }
 
@@ -72,10 +78,16 @@ namespace Airplanes.API.Controllers
         [Authorize(Roles = "manager_airplanes")]
         public async Task<IActionResult> Update(string id, Airplane airplane)
         {
-            (_, var response) = await _airplaneValidator.ValidateToUpdate(id, airplane);
+            var (airplaneOut, response) = await _airplaneValidator.ValidateToUpdate(id, airplane);
 
             if (response.StatusCode.Equals(404))
                 return NotFound(response);
+
+            var objectBeforeJson = JsonConvert.SerializeObject(airplaneOut).ToString();
+
+            var objectAfterJson = JsonConvert.SerializeObject(airplane).ToString();
+
+            await LogAPIService.RegisterLog(new Log(null, objectBeforeJson, objectAfterJson, "put", "airplanes"));
 
             return NoContent();
         }
@@ -84,11 +96,14 @@ namespace Airplanes.API.Controllers
         [Authorize(Roles = "manager_airplanes")]
         public async Task<IActionResult> Delete(string id)
         {
-            (_, var response) = await _airplaneValidator.ValidateToRemove(id);
-
+            var (airplaneOut, response) = await _airplaneValidator.ValidateToRemove(id);
 
             if (response.StatusCode.Equals(404))
                 return NotFound(response);
+
+            var objectBeforeJson = JsonConvert.SerializeObject(airplaneOut).ToString();
+
+            await LogAPIService.RegisterLog(new Log(null, objectBeforeJson, null, "delete", "airplanes"));
 
             return NoContent();
         }

@@ -5,9 +5,11 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Models.Entities;
+using Newtonsoft.Json;
 using Users.API.Services;
 using Users.API.Validators;
 using Utils.HttpApiResponse;
+using Utils.Services;
 
 namespace Users.API.Controllers
 {
@@ -18,8 +20,6 @@ namespace Users.API.Controllers
     {
         private readonly UserMongoService _userMongoService;
         private readonly UserValidator _userValidator;
-
-        public UsersController() { }
 
         public UsersController(UserMongoService userMongoService, UserValidator userValidator)
         {
@@ -46,7 +46,7 @@ namespace Users.API.Controllers
         }
 
         [HttpGet("{username}")]
-        public async Task<ActionResult<User>> GetByUsername(string username, string password)
+        public async Task<ActionResult<User>> GetByUsername(string username, string password = null)
         {
             User user;
 
@@ -67,10 +67,16 @@ namespace Users.API.Controllers
         [Authorize(Roles = "manager_users")]
         public async Task<ActionResult<User>> Create(User user)
         {
-            (_, var response) = await _userValidator.ValidateToCreate(user);
+            var (_, response) = await _userValidator.ValidateToCreate(user);
 
             if (response.StatusCode.Equals(400))
                 return BadRequest(response);
+
+            user.Password = null;
+
+            var objectAfterJson = JsonConvert.SerializeObject(user).ToString();
+
+            await LogAPIService.RegisterLog(new Log(null, null, objectAfterJson, "post", "users"));
 
             return CreatedAtRoute("GetUser", new { id = user.Id }, user);
         }
@@ -79,10 +85,16 @@ namespace Users.API.Controllers
         [Authorize(Roles = "manager_users")]
         public async Task<IActionResult> Update(string id, User user)
         {
-            (_, var response) = await _userValidator.ValidateToUpdate(id, user);
+            var (userOut,  response) = await _userValidator.ValidateToUpdate(id, user);
 
             if (response.StatusCode.Equals(404))
                 return NotFound(response);
+
+            var objectBeforeJson = JsonConvert.SerializeObject(userOut).ToString();
+
+            var objectAfterJson = JsonConvert.SerializeObject(user).ToString();
+
+            await LogAPIService.RegisterLog(new Log(null, objectBeforeJson, objectAfterJson, "put", "users"));
 
             return NoContent();
         }
@@ -91,10 +103,14 @@ namespace Users.API.Controllers
         [Authorize(Roles = "manager_users")]
         public async Task<IActionResult> Delete(string id)
         {
-            (_, var response) = await _userValidator.ValidateToRemove(id);
+            var (userOut, response) = await _userValidator.ValidateToRemove(id);
 
             if (response.StatusCode.Equals(404))
                 return NotFound(response);
+
+            var objectBeforeJson = JsonConvert.SerializeObject(userOut).ToString();
+
+            await LogAPIService.RegisterLog(new Log(null, objectBeforeJson, null, "delete", "airplanes"));
 
             return NoContent();
         }

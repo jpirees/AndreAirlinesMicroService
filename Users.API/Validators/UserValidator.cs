@@ -68,6 +68,8 @@ namespace Users.API.Validators
 
                 await _userMongoService.Update(id, userIn);
 
+                user.Password = null;
+
                 return (user, new ApiResponse(200));
             }
 

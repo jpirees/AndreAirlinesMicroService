@@ -55,7 +55,7 @@ namespace Tickets.API.Validators
 
             await _ticketMongoService.Create(ticketIn);
 
-            return (ticketIn, new ApiResponse(201));
+            return (ticket, new ApiResponse(201));
         }
 
         public async Task<(Ticket, ApiResponse)> ValidateToUpdate(string id, Ticket ticketIn)
@@ -123,7 +123,7 @@ namespace Tickets.API.Validators
 
             await _ticketMongoService.Remove(id);
 
-            return (ticket, new ApiResponse(200));
+            return (ticket, new ApiResponse(204));
         }
 
     }

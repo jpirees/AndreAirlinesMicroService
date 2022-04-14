@@ -5,9 +5,11 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Models.Entities;
+using Newtonsoft.Json;
 using Tickets.API.Services;
 using Tickets.API.Validators;
 using Utils.HttpApiResponse;
+using Utils.Services;
 
 namespace Tickets.API.Controllers
 {
@@ -58,38 +60,62 @@ namespace Tickets.API.Controllers
         [Authorize(Roles = "manager_tickets,clerk_tickets")]
         public async Task<ActionResult<Ticket>> Create(Ticket ticket)
         {
-            (_, var response) = await _ticketValidator.ValidateToCreate(ticket);
+            var (_,  response) = await _ticketValidator.ValidateToCreate(ticket);
 
-            return response.StatusCode switch
+            switch (response.StatusCode)
             {
-                400 => BadRequest(response),
-                404 => NotFound(response),
-                _ => CreatedAtRoute("GetTicket", new { id = ticket.Id }, ticket)
-            };
+                case 400:
+                    return BadRequest(response);
+
+                case 404:
+                    return NotFound(response);
+
+                default:
+                    var objectAfterJson = JsonConvert.SerializeObject(ticket).ToString();
+
+                    await LogAPIService.RegisterLog(new Log(null, null, objectAfterJson, "post", "tickets"));
+
+                    return CreatedAtRoute("GetTicket", new { id = ticket.Id }, ticket);
+            }
         }
 
         [HttpPut("{id:length(24)}")]
         [Authorize(Roles = "manager_tickets,clerk_tickets")]
         public async Task<IActionResult> Update(string id, Ticket ticket)
         {
-            (_, var response) = await _ticketValidator.ValidateToUpdate(id, ticket);
+            var (ticketOut, response) = await _ticketValidator.ValidateToUpdate(id, ticket);
 
-            return response.StatusCode switch
+            switch (response.StatusCode)
             {
-                400 => BadRequest(response),
-                404 => NotFound(response),
-                _ => NoContent()
-            };
+                case 400:
+                    return BadRequest(response);
+
+                case 404:
+                    return NotFound(response);
+
+                default:
+                    var objectBeforeJson = JsonConvert.SerializeObject(ticketOut).ToString();
+
+                    var objectAfterJson = JsonConvert.SerializeObject(ticket).ToString();
+
+                    await LogAPIService.RegisterLog(new Log(null, objectBeforeJson, objectAfterJson, "put", "tickets"));
+
+                    return NoContent();
+            }
         }
 
         [HttpDelete("{id:length(24)}")]
         [Authorize(Roles = "manager_tickets,clerk_tickets")]
         public async Task<IActionResult> Delete(string id)
         {
-            (_, var response) = await _ticketValidator.ValidateToRemove(id);
+            var (ticketOut, response) = await _ticketValidator.ValidateToRemove(id);
 
             if (response.StatusCode.Equals(404))
                 return NotFound(response);
+
+            var objectBeforeJson = JsonConvert.SerializeObject(ticketOut).ToString();
+
+            await LogAPIService.RegisterLog(new Log(null, objectBeforeJson, null, "delete", "tickets"));
 
             return NoContent();
         }

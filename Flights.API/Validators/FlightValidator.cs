@@ -87,7 +87,7 @@ namespace Flights.API.Validators
 
                 await _flightMongoService.Update(id, flightIn);
 
-                return (flightIn, new ApiResponse(204));
+                return (flight, new ApiResponse(204));
             }
 
             return (flight, new ApiResponse(404, "Vôo não encontrado."));

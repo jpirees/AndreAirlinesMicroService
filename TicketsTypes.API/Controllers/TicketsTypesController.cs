@@ -5,9 +5,11 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Models.Entities;
+using Newtonsoft.Json;
 using TicketsTypes.API.Services;
 using TicketsTypes.API.Validators;
 using Utils.HttpApiResponse;
+using Utils.Services;
 
 namespace TicketsTypes.API.Controllers
 {
@@ -60,11 +62,15 @@ namespace TicketsTypes.API.Controllers
         [Authorize(Roles = "manager_ticketstypes")]
         public async Task<ActionResult<TicketType>> Create(TicketType ticketType)
         {
-            (_, var response) = await _ticketTypeValidator.ValidateToCreate(ticketType);
+           var (_, response) = await _ticketTypeValidator.ValidateToCreate(ticketType);
 
             if (response.StatusCode.Equals(400))
                 return BadRequest(response);
-            
+
+            var objectAfterJson = JsonConvert.SerializeObject(ticketType).ToString();
+
+            await LogAPIService.RegisterLog(new Log(null, null, objectAfterJson, "post", "tickets_types"));
+
             return CreatedAtRoute("GetTicketType", new { id = ticketType.Id }, ticketType);
         }
 
@@ -72,25 +78,39 @@ namespace TicketsTypes.API.Controllers
         [Authorize(Roles = "manager_ticketstypes")]
         public async Task<IActionResult> Update(string id, TicketType ticketType)
         {
-            (_, var response) = await _ticketTypeValidator.ValidateToUpdate(id, ticketType);
+           var (ticketTypeOut, response) = await _ticketTypeValidator.ValidateToUpdate(id, ticketType);
 
-            return response.StatusCode switch
+            switch (response.StatusCode)
             {
-                400 => BadRequest(response),
-                404 => NotFound(response),
-                _ => NoContent()
-            };
+                case 400:
+                    return BadRequest(response);
+
+                case 404:
+                    return NotFound(response);
+
+                default:
+                    var objectBeforeJson = JsonConvert.SerializeObject(ticketTypeOut).ToString();
+
+                    var objectAfterJson = JsonConvert.SerializeObject(ticketType).ToString();
+
+                    await LogAPIService.RegisterLog(new Log(null, objectBeforeJson, objectAfterJson, "put", "tickets_types"));
+
+                    return NoContent();
+            }
         }
 
         [HttpDelete("{id:length(24)}")]
         [Authorize(Roles = "manager_ticketstypes")]
         public async Task<IActionResult> Delete(string id)
         {
-            (_, var response) = await _ticketTypeValidator.ValidateToRemove(id);
-
+            var (ticketTypeOut, response) = await _ticketTypeValidator.ValidateToRemove(id);
 
             if (response.StatusCode.Equals(404))
                 return NotFound(response);
+
+            var objectBeforeJson = JsonConvert.SerializeObject(ticketTypeOut).ToString();
+
+            await LogAPIService.RegisterLog(new Log(null, objectBeforeJson, null, "delete", "tickets_types"));
 
             return NoContent();
         }

@@ -5,9 +5,11 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Models.Entities;
+using Newtonsoft.Json;
 using Passengers.API.Services;
 using Passengers.API.Validators;
 using Utils.HttpApiResponse;
+using Utils.Services;
 
 namespace Passengers.API.Controllers
 {
@@ -59,10 +61,14 @@ namespace Passengers.API.Controllers
         [Authorize(Roles = "manager_passengers,clerk_passengers")]
         public async Task<ActionResult<Passenger>> Create(Passenger passenger)
         {
-            (_, var response) = await _passengerValidator.ValidateToCreate(passenger);
+            var (_, response) = await _passengerValidator.ValidateToCreate(passenger);
 
             if (response.StatusCode.Equals(400))
                 return BadRequest(response);
+
+            var objectAfterJson = JsonConvert.SerializeObject(passenger).ToString();
+
+            await LogAPIService.RegisterLog(new Log(null, null, objectAfterJson, "post", "passengers"));
 
             return CreatedAtRoute("GetPassenger", new { id = passenger.Id }, passenger);
         }
@@ -71,10 +77,17 @@ namespace Passengers.API.Controllers
         [Authorize(Roles = "manager_passengers,clerk_passengers")]
         public async Task<IActionResult> Update(string id, Passenger passenger)
         {
-            (_, var response) = await _passengerValidator.ValidateToUpdate(id, passenger);
+            var (passengerOut, response) = await _passengerValidator.ValidateToUpdate(id, passenger);
 
             if (response.StatusCode.Equals(404))
                 return NotFound(response);
+
+
+            var objectBeforeJson = JsonConvert.SerializeObject(passengerOut).ToString();
+
+            var objectAfterJson = JsonConvert.SerializeObject(passenger).ToString();
+
+            await LogAPIService.RegisterLog(new Log(null, objectBeforeJson, objectAfterJson, "put", "passengers"));
 
             return NoContent();
         }
@@ -83,10 +96,14 @@ namespace Passengers.API.Controllers
         [Authorize(Roles = "manager_passengers")]
         public async Task<IActionResult> Delete(string id)
         {
-            (_, var response) = await _passengerValidator.ValidateToRemove(id);
+            var (passengerOut, response) = await _passengerValidator.ValidateToRemove(id);
 
             if (response.StatusCode.Equals(404))
                 return NotFound(response);
+
+            var objectBeforeJson = JsonConvert.SerializeObject(passengerOut).ToString();
+
+            await LogAPIService.RegisterLog(new Log(null, objectBeforeJson, null, "put", "passengers"));
 
             return NoContent();
         }
